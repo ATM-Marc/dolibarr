@@ -180,6 +180,7 @@ if (($action == 'create' || $action == 'add') && ! $error) {
 				$id = $object->create($user);
 
 				if ($id > 0) {
+
 					while ( $ii < $nn ) {
 						$objectsrc = new CommandeFournisseur($db);
 						dol_syslog("Try to find source object origin=" . $object->origin . " originid=" . $object->origin_id . " to add lines");
@@ -371,7 +372,7 @@ if ($action == 'create' && !$error) {
 	$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
 	print $hookmanager->resPrint;
 
-	if (empty($reshook) && ! empty($extrafields->attribute_label))
+	if (empty($reshook))
 	{
 		$object=new FactureFournisseur($db);
 		print $object->showOptionals($extrafields,'edit');
@@ -542,13 +543,12 @@ if (($action != 'create' && $action != 'add') && !$error) {
 
 		print '</td></tr>';
 
-		$var = True;
 		$generic_commande = new CommandeFournisseur($db);
 
-		while ( $i < $num ) {
+		while ($i < $num) {
 			$objp = $db->fetch_object($resql);
-			$var = ! $var;
-			print '<tr ' . $bc[$var] . '>';
+
+			print '<tr class="oddeven">';
 			print '<td class="nowrap">';
 
 			$generic_commande->id = $objp->rowid;

@@ -1,6 +1,7 @@
 <?php
 /* Copyright (C) 2016	Marcos García	      <marcosgdf@gmail.com>
  * Copyright (C) 2017	Laurent Destailleur   <eldy@users.sourceforge.net>
+ * Copyright (C) 2019       Frédéric France         <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +31,9 @@ $langs->load("other");
 $var = false;
 $id = GETPOST('id', 'int');
 $valueid = GETPOST('valueid', 'int');
-$ref = GETPOST('ref');
-$weight_impact = (float) GETPOST('weight_impact');
-$price_impact = (float) GETPOST('price_impact');
+$ref = GETPOST('ref', 'alpha');
+$weight_impact = GETPOST('weight_impact', 'alpha');
+$price_impact = GETPOST('price_impact', 'alpha');
 $price_impact_percent = (bool) GETPOST('price_impact_percent');
 $form = new Form($db);
 
@@ -71,7 +72,7 @@ if ($cancel) {
     unset($_SESSION['addvariant_'.$object->id]);
 }
 
-if (! $object->isProduct()) {
+if (! $object->isProduct() && ! $object->isService()) {
 	header('Location: '.dol_buildpath('/product/card.php?id='.$object->id, 2));
 	exit();
 }
@@ -327,11 +328,31 @@ if (! empty($id) || ! empty($ref))
 
 		if ($action == 'add') {
 			$title = $langs->trans('NewProductCombination');
+			print dol_fiche_head();
+			$features = $_SESSION['addvariant_'.$object->id];
+			//First, sanitize
+			print '<div id="parttoaddvariant">';
+			if (! empty($features)) {
+				foreach ($features as $feature) {
+
+					$explode = explode(':', $feature);
+
+					if ($prodattr->fetch($explode[0]) < 0) {
+						continue;
+					}
+
+					if ($prodattr_val->fetch($explode[1]) < 0) {
+						continue;
+					}
+
+					print '<i>' . $prodattr->label . '</i>:'. $prodattr_val->value . ' ';
+				}
+			}
+			print '</div>';
+			print dol_fiche_end();
 		} else {
 			$title = $langs->trans('EditProductCombination');
 		}
-
-		print '<div id="parttoaddvariant"></div>';
 		print_fiche_titre($title);
 
 		if ($action == 'add') {
@@ -346,8 +367,8 @@ if (! empty($id) || ! empty($ref))
 			foreach ($prodattr_all as $each) {
 				$prodattr_alljson[$each->id] = $each;
 			}
-                
-		?>
+
+			?>
 
 		<script type="text/javascript">
 
@@ -523,12 +544,13 @@ if (! empty($id) || ! empty($ref))
 				<td><input type="text" id="price_impact" name="price_impact" value="<?php echo price($price_impact) ?>">
 				<input type="checkbox" id="price_impact_percent" name="price_impact_percent" <?php echo $price_impact_percent ? ' checked' : '' ?>> <label for="price_impact_percent"><?php echo $langs->trans('PercentageVariation') ?></label></td>
 			</tr>
-			<tr>
-				<td><label for="weight_impact"><?php echo $langs->trans('WeightImpact') ?></label></td>
-				<td><input type="text" id="weight_impact" name="weight_impact" value="<?php echo price($weight_impact) ?>"></td>
-			</tr>
-		</table>
-		<?php
+<?php   	if ($object->isProduct()) {
+				print '<tr>';
+				print '<td><label for="weight_impact">'.$langs->trans('WeightImpact').'</label></td>';
+				print '<td><input type="text" id="weight_impact" name="weight_impact" value="'.price($weight_impact).'"></td>';
+				print '</tr>';
+			}
+			print '</table>';
 		}
 
 		print dol_fiche_end();
@@ -678,7 +700,7 @@ if (! empty($id) || ! empty($ref))
 				<td class="liste_titre"><?php echo $langs->trans('Product') ?></td>
 				<td class="liste_titre"><?php echo $langs->trans('Combination') ?></td>
 				<td class="liste_titre right"><?php echo $langs->trans('PriceImpact') ?></td>
-				<td class="liste_titre right"><?php echo $langs->trans('WeightImpact') ?></td>
+                <?php if ($object->isProduct()) print'<td class="liste_titre right">'.$langs->trans('WeightImpact').'</td>'; ?>
 				<td class="liste_titre center"><?php echo $langs->trans('OnSell') ?></td>
 				<td class="liste_titre center"><?php echo $langs->trans('OnBuy') ?></td>
 				<td class="liste_titre"></td>
@@ -714,7 +736,7 @@ if (! empty($id) || ! empty($ref))
     					} ?>
     				</td>
     				<td class="right"><?php echo ($currcomb->variation_price >= 0 ? '+' : '').price($currcomb->variation_price).($currcomb->variation_price_percentage ? ' %' : '') ?></td>
-    				<td class="right"><?php echo ($currcomb->variation_weight >= 0 ? '+' : '').price($currcomb->variation_weight).' '.measuring_units_string($prodstatic->weight_units, 'weight') ?></td>
+                    <?php if ($object->isProduct()) print '<td class="right">'.($currcomb->variation_weight >= 0 ? '+' : '').price($currcomb->variation_weight).' '.measuring_units_string($prodstatic->weight_units, 'weight').'</td>'; ?>
     				<td style="text-align: center;"><?php echo $prodstatic->getLibStatut(2, 0) ?></td>
     				<td style="text-align: center;"><?php echo $prodstatic->getLibStatut(2, 1) ?></td>
     				<td class="right">
