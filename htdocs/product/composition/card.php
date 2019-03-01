@@ -2,7 +2,7 @@
 /* Copyright (C) 2001-2007  Rodolphe Quiedeville    <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2017  Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2005       Eric Seigne             <eric.seigne@ryxeo.com>
- * Copyright (C) 2005-2012  Regis Houssin           <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2018  Regis Houssin           <regis.houssin@capnetworks.com>
  * Copyright (C) 2006       Andre Cianfarani        <acianfa@free.fr>
  * Copyright (C) 2011-2014  Juanjo Menent           <jmenent@2byte.es>
  * Copyright (C) 2015       Raphaël Doursenaud      <rdoursenaud@gpcsolutions.fr>
@@ -33,9 +33,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 
-$langs->load("bills");
-$langs->load("products");
-$langs->load("stocks");
+// Load translation files required by the page
+$langs->loadLangs(array('bills', 'products', 'stocks'));
 
 $id=GETPOST('id','int');
 $ref=GETPOST('ref','alpha');
@@ -75,7 +74,7 @@ if ($action == 'add_prod' && ($user->rights->produit->creer || $user->rights->se
 	{
 		if ($_POST["prod_qty_".$i] > 0)
 		{
-			if ($object->add_sousproduit($id, $_POST["prod_id_".$i], $_POST["prod_qty_".$i], $_POST["prod_incdec_".$i]) > 0)
+			if ($object->add_sousproduit($id, $_POST["prod_id_".$i], $_POST["prod_qty_".$i], $_POST["prod_incdec_".$i], $_POST["prod_optional_".$i]) > 0)
 			{
 				//var_dump($id.' - '.$_POST["prod_id_".$i].' - '.$_POST["prod_qty_".$i]);exit;
 				$action = 'edit';
@@ -120,7 +119,7 @@ else if($action==='save_composed_product')
 	{
 		foreach ($TProduct as $id_product => $row)
 		{
-			if ($row['qty'] > 0) $object->update_sousproduit($id, $id_product, $row['qty'], isset($row['incdec']) ? 1 : 0 );
+			if ($row['qty'] > 0) $object->update_sousproduit($id, $id_product, $row['qty'], isset($row['incdec']) ? 1 : 0, isset($row['optional']) ? 1 : 0  );
 			else $object->del_sousproduit($id, $id_product);
 		}
 		setEventMessages('RecordSaved', null);
@@ -339,10 +338,12 @@ if ($id > 0 || ! empty($ref))
 			if (! empty($conf->stock->enabled)) print '<td align="right">'.$langs->trans('Stock').'</td>';
 			print '<td align="center">'.$langs->trans('Qty').'</td>';
 			print '<td align="center">'.$langs->trans('ComposedProductIncDecStock').'</td>';
+			print '<td align="center">'.$langs->trans('ComposedProductOptional').'</td>';
 			print '</tr>'."\n";
 
 			$class='pair';
 
+			$totalsell=0;
 			if (count($prods_arbo))
 			{
 				foreach($prods_arbo as $value)
@@ -370,11 +371,16 @@ if ($id > 0 || ! empty($ref))
 						}
 						print '</td>';
 
-					    $totalline=price2num($value['nb'] * ($product_fourn->fourn_unitprice * (1 - $product_fourn->fourn_remise_percent/100) + $product_fourn->fourn_unitcharges - $product_fourn->fourn_remise), 'MT');
+						// For avoid a non-numeric value
+						$fourn_unitprice = (!empty($product_fourn->fourn_unitprice)?$product_fourn->fourn_unitprice:0);
+						$fourn_remise_percent = (!empty($product_fourn->fourn_remise_percent)?$product_fourn->fourn_remise_percent:0);
+						$fourn_remise = (!empty($product_fourn->fourn_remise)?$product_fourn->fourn_remise:0);
+
+						$totalline=price2num($value['nb'] * ($fourn_unitprice * (1 - $fourn_remise_percent/100) - $fourn_remise), 'MT');
 						$total+=$totalline;
 
 						print '<td align="right">';
-						print ($notdefined?'':($value['nb']> 1 ? $value['nb'].'x' : '').price($product_fourn->fourn_unitprice,'','',0,0,-1,$conf->currency));
+						print ($notdefined?'':($value['nb']> 1 ? $value['nb'].'x' : '').price($fourn_unitprice,'','',0,0,-1,$conf->currency));
 						print '</td>';
 
 						// Best selling price
@@ -383,25 +389,32 @@ if ($id > 0 || ! empty($ref))
 						{
 							$pricesell='Variable';
 						}
-						$totallinesell=price2num($value['nb'] * ($pricesell), 'MT');
-						$totalsell+=$totallinesell;
+						else
+						{
+							$totallinesell=price2num($value['nb'] * ($pricesell), 'MT');
+							$totalsell+=$totallinesell;
+						}
 						print '<td align="right" colspan="2">';
-						print ($notdefined?'':($value['nb']> 1 ? $value['nb'].'x' : '').price($pricesell,'','',0,0,-1,$conf->currency));
+						print ($notdefined?'':($value['nb']> 1 ? $value['nb'].'x' : ''));
+						if (is_numeric($pricesell)) print price($pricesell,'','',0,0,-1,$conf->currency);
+						else print $langs->trans($pricesell);
 						print '</td>';
 
 						// Stock
 						if (! empty($conf->stock->enabled)) print '<td align="right">'.$value['stock'].'</td>';	// Real stock
 
-						// Qty + IncDec
+						// Qty + IncDec + Optional
 						if ($user->rights->produit->creer || $user->rights->service->creer)
 						{
 							print '<td align="center"><input type="text" value="'.$nb_of_subproduct.'" name="TProduct['.$productstatic->id.'][qty]" size="4" /></td>';
 							print '<td align="center"><input type="checkbox" name="TProduct['.$productstatic->id.'][incdec]" value="1" '.($value['incdec']==1?'checked':''  ).' /></td>';
+							print '<td align="center"><input type="checkbox" name="TProduct['.$productstatic->id.'][optional]" value="1" '.($value['optional']==1?'checked':''  ).' /></td>';
 
 						}
 						else{
 							print '<td>'.$nb_of_subproduct.'</td>';
 							print '<td>'.($value['incdec']==1?'x':''  ).'</td>';
+							print '<td>'.($value['optional']==1?'x':''  ).'</td>';
 						}
 
 						print '</tr>'."\n";
@@ -463,7 +476,7 @@ if ($id > 0 || ! empty($ref))
 				// Stock
 				if (! empty($conf->stock->enabled)) print '<td class="liste_total" align="right">&nbsp;</td>';
 
-				print '<td align="right" colspan="2">';
+				print '<td align="right" colspan="3">';
 				if ($user->rights->produit->creer || $user->rights->service->creer)
 				{
 					print '<input type="submit" class="button" value="'.$langs->trans('Save').'">';
@@ -473,7 +486,7 @@ if ($id > 0 || ! empty($ref))
 			}
 			else
 			{
-				$colspan=8;
+				$colspan=9;
 				if (! empty($conf->stock->enabled)) $colspan++;
 
 				print '<tr class="impair">';
@@ -511,7 +524,8 @@ if ($id > 0 || ! empty($ref))
 			{
 				require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
 				print '<div class="inline-block">'.$langs->trans("CategoryFilter").': ';
-				print $form->select_all_categories(Categorie::TYPE_PRODUCT, $parent).' &nbsp; </div>';
+				print $form->select_all_categories(Categorie::TYPE_PRODUCT, $parent, 'parent').' &nbsp; </div>';
+				print ajax_combobox('parent');
 			}
 			print '<div class="inline-block">';
 			print '<input type="submit" class="button" value="'.$langs->trans("Search").'">';
@@ -535,6 +549,7 @@ if ($id > 0 || ! empty($ref))
 			//print '<th class="liste_titre" align="center">'.$langs->trans("IsInPackage").'</td>';
 			print '<th class="liste_titre" align="right">'.$langs->trans("Qty").'</td>';
 			print '<th align="center">'.$langs->trans('ComposedProductIncDecStock').'</th>';
+			print '<th align="center">'.$langs->trans('ComposedProductOptional').'</th>';
 			print '</tr>';
 			if ($resql)
 			{
@@ -596,12 +611,14 @@ if ($id > 0 || ! empty($ref))
 							//$addchecked = ' checked';
 							$qty=$object->is_sousproduit_qty;
 							$incdec=$object->is_sousproduit_incdec;
+							$optional=$object->is_sousproduit_optional;
 						}
 						else
 						{
 							//$addchecked = '';
 							$qty=0;
 							$incdec=0;
+							$optional=0;
 						}
 						// Contained into package
 						/*print '<td align="center"><input type="hidden" name="prod_id_'.$i.'" value="'.$objp->rowid.'">';
@@ -617,6 +634,17 @@ if ($id > 0 || ! empty($ref))
 							// TODO Hide field and show it when setting a qty
 							print '<input type="checkbox" name="prod_incdec_'.$i.'" value="1" checked>';
 							//print '<input type="checkbox" disabled name="prod_incdec_'.$i.'" value="1" checked>';
+						}
+						print '</td>';
+
+						// Optional
+						print '<td align="center">';
+						if ($qty) print '<input type="checkbox" name="prod_optional_'.$i.'" value="1" '.($optional?'checked':'').'>';
+						else
+						{
+							// TODO Hide field and show it when setting a qty
+							print '<input type="checkbox" name="prod_optional_'.$i.'" value="1">';
+							//print '<input type="checkbox" disabled name="prod_optional_'.$i.'" value="1">';
 						}
 						print '</td>';
 

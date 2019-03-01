@@ -147,7 +147,7 @@ if ($id > 0 || ! empty($ref))
             if (!$user->rights->societe->client->voir && !$socid) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
             $sql.= " WHERE f.fk_soc = s.rowid";
             $sql.= " AND f.fk_statut > 0";
-            $sql.= " AND s.entity = ".$conf->entity;
+            $sql.= " AND f.entity IN (".getEntity('invoice').")";
             $sql.= " AND d.fk_facture = f.rowid";
             $sql.= " AND d.fk_product =".$object->id;
             if (!$user->rights->societe->client->voir && !$socid) $sql.= " AND s.rowid = sc.fk_soc AND sc.fk_user = " .$user->id;
@@ -193,10 +193,8 @@ if ($id > 0 || ! empty($ref))
                 $rounding = min($conf->global->MAIN_MAX_DECIMALS_UNIT,$conf->global->MAIN_MAX_DECIMALS_TOT);
 
                 if ($num > 0) {
-                    $var=True;
                     while ($i < $num /*&& $i < $conf->liste_limit*/) {
                         $objp = $db->fetch_object($result);
-
 
 						$marginRate = ($objp->buying_price != 0)?(100 * $objp->marge / $objp->buying_price):'' ;
 						$markRate = ($objp->selling_price != 0)?(100 * $objp->marge / $objp->selling_price):'' ;
