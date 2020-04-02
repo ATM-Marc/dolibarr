@@ -404,16 +404,16 @@ class Thirdparties extends DolibarrApi
 			{
 				require_once DOL_DOCUMENT_ROOT.$object_file;
 
-				if (!$errors && !$object_name::replaceThirdparty($db, $soc_origin->id, $object->id))
+				if (!$error && !$object_name::replaceThirdparty($db, $soc_origin->id, $object->id))
 				{
-					$errors++;
+					$error++;
 					//setEventMessages($db->lasterror(), null, 'errors');
 				}
 			}
 		}
 
 		// External modules should update their ones too
-		if (!$errors)
+		if (!$error)
 		{
 			$reshook = $hookmanager->executeHooks('replaceThirdparty', array(
 				'soc_origin' => $soc_origin->id,
@@ -423,7 +423,7 @@ class Thirdparties extends DolibarrApi
 			if ($reshook < 0)
 			{
 				//setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
-				$errors++;
+				$error++;
 			}
 		}
 
@@ -447,7 +447,7 @@ class Thirdparties extends DolibarrApi
 			//We finally remove the old thirdparty
 			if ($soc_origin->delete($soc_origin->id, $user) < 1)
 			{
-				$errors++;
+				$error++;
 			}
 		}
 

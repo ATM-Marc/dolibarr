@@ -3282,6 +3282,8 @@ class Commande extends CommonOrder
 
 					if (! dol_delete_file($file,0,0,0,$this)) // For triggers
 					{
+						$langs->load('errors');
+						$this->error=$langs->trans('ErrorFailToDeleteFile',$file);
 						$this->db->rollback();
 						return 0;
 					}
