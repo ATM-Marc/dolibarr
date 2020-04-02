@@ -973,6 +973,7 @@ class Fichinter extends CommonObject
 
 					if (! dol_delete_file($file,0,0,0,$this)) // For triggers
 					{
+						$this->db->rollback();
 						$langs->load("errors");
 						$this->error=$langs->trans("ErrorFailToDeleteFile",$file);
 						return 0;
@@ -982,6 +983,7 @@ class Fichinter extends CommonObject
 				{
 					if (! dol_delete_dir_recursive($dir))
 					{
+						$this->db->rollback();
 						$langs->load("errors");
 						$this->error=$langs->trans("ErrorFailToDeleteDir",$dir);
 						return 0;

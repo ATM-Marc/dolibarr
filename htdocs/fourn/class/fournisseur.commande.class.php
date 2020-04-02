@@ -3574,6 +3574,7 @@ class CommandeFournisseurLigne extends CommonOrderLine
         }
         else
         {
+			$this->db->rollback();
             $this->error=$this->db->lasterror();
             return -1;
         }
