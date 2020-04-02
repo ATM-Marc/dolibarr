@@ -238,8 +238,8 @@ class SupplierInvoices extends DolibarrApi
             $this->invoice->$field = $value;
         }
 
-        if($this->invoice->update($id, DolibarrApiAccess::$user))
-            return $this->get ($id);
+        if($this->invoice->update(DolibarrApiAccess::$user) > 0)
+            return $this->get($id);
 
         return false;
     }

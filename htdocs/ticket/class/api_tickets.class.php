@@ -369,7 +369,7 @@ class Tickets extends DolibarrApi
         if (empty($this->ticket->track_id)) {
             $this->ticket->track_id = generate_random_id(16);
         }
-        if (! $this->ticket->create(DolibarrApiAccess::$user)) {
+        if ($this->ticket->create(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500);
         }
         return $this->ticket->id;
@@ -433,7 +433,7 @@ class Tickets extends DolibarrApi
             $this->ticket->$field = $value;
         }
 
-        if ($this->ticket->update($id, DolibarrApiAccess::$user)) {
+        if ($this->ticket->update(DolibarrApiAccess::$user) > 0) {
             return $this->get($id);
         }
 
@@ -461,7 +461,7 @@ class Tickets extends DolibarrApi
 			throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
-        if (!$this->ticket->delete($id)) {
+        if ($this->ticket->delete(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500);
         }
 

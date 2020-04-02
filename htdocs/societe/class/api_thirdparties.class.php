@@ -247,7 +247,7 @@ class Thirdparties extends DolibarrApi
 			$this->company->$field = $value;
 		}
 
-		if($this->company->update($id, DolibarrApiAccess::$user,1,'','','update'))
+		if($this->company->update($id, DolibarrApiAccess::$user,1,'','','update') > 0)
 			return $this->get($id);
 
 		return false;
@@ -1100,7 +1100,7 @@ class Thirdparties extends DolibarrApi
 			$account->$field = $value;
 		}
 
-		if ($account->create(DolibarrApiAccess::$user) < 0)
+		if ($account->create(DolibarrApiAccess::$user) <= 0) // CompanyBankAccount::create() can return 0 on error
 			throw new RestException(500, 'Error creating Company Bank account');
 
 
@@ -1570,7 +1570,7 @@ class Thirdparties extends DolibarrApi
 			$account = new SocieteAccount($this->db);
 			$account->fetch($obj->rowid);
 
-			if($account->delete(DolibarrApiAccess::$user) < 0) {
+			if($account->delete(DolibarrApiAccess::$user) <= 0) { // SocieteAccount::delete() can return 0 on error
 				throw new RestException(500, "Error while deleting $site gateway attached to this third party");
 			}
 		}
@@ -1618,7 +1618,7 @@ class Thirdparties extends DolibarrApi
 				$account = new SocieteAccount($db);
 				$account->fetch($obj->rowid);
 
-				if($account->delete(DolibarrApiAccess::$user) < 0) {
+				if($account->delete(DolibarrApiAccess::$user) <= 0) { // SocieteAccount::delete() can return 0 on error
 					throw new RestException(500, 'Error while deleting gateways attached to this third party');
 				}
 				$i++;

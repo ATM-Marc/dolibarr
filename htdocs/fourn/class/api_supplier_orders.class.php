@@ -243,8 +243,8 @@ class SupplierOrders extends DolibarrApi
             $this->order->$field = $value;
         }
 
-        if($this->order->update($id, DolibarrApiAccess::$user))
-            return $this->get ($id);
+        if($this->order->update(0) > 0) // First parameter of CommandeFournisseur::delete() is $notrigger and is mandatory
+            return $this->get($id);
 
         return false;
     }

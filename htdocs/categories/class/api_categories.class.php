@@ -248,7 +248,7 @@ class Categories extends DolibarrApi
 			throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
-        if (! $this->category->delete(DolibarrApiAccess::$user)) {
+        if ($this->category->delete(DolibarrApiAccess::$user) < 0) {
             throw new RestException(401,'error when delete category');
         }
 

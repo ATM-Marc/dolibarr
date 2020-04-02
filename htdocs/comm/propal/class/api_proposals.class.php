@@ -481,7 +481,7 @@ class Proposals extends DolibarrApi
 			throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
-		if( ! $this->propal->delete(DolibarrApiAccess::$user)) {
+		if($this->propal->delete(DolibarrApiAccess::$user) <= 0) { // Propal::delete() can return 0 on error
 			throw new RestException(500, 'Error when delete Commercial Proposal : '.$this->propal->error);
 		}
 

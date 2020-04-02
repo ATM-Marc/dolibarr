@@ -462,7 +462,7 @@ class Shipments extends DolibarrApi
 			throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
-        if( ! $this->shipment->delete(DolibarrApiAccess::$user)) {
+        if($this->shipment->delete() < 0) { // Expedition::delete() takes no $user argument
             throw new RestException(500, 'Error when deleting shipment : '.$this->shipment->error);
         }
 

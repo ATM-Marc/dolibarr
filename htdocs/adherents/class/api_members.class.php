@@ -257,7 +257,7 @@ class Members extends DolibarrApi
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
-        if (! $member->delete($member->id, DolibarrApiAccess::$user)) {
+        if ($member->delete($member->id, DolibarrApiAccess::$user) < 0) {
             throw new RestException(401,'error when deleting member');
         }
 

@@ -246,7 +246,7 @@ class Contacts extends DolibarrApi
 		    $this->contact->$field = $value;
 		}
 
-		if ($this->contact->update($id, DolibarrApiAccess::$user, 1, '', '', 'update'))
+		if ($this->contact->update($id, DolibarrApiAccess::$user, 1, '', '', 'update') > 0)
 			return $this->get($id);
 
 		return false;

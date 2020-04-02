@@ -249,7 +249,7 @@ class AgendaEvents extends DolibarrApi
             $this->actioncomm->$field = $value;
         }
 
-        if ($this->actioncomm->update($id, DolibarrApiAccess::$user,1,'','','update'))
+        if ($this->actioncomm->update($id, DolibarrApiAccess::$user,1,'','','update') > 0)
             return $this->get($id);
 
         return false;
@@ -283,7 +283,7 @@ class AgendaEvents extends DolibarrApi
 			throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
-        if( ! $this->actioncomm->delete(DolibarrApiAccess::$user)) {
+        if($this->actioncomm->delete() < 0) { // ActionComm::delete() takes a single optional $notrigger argument
             throw new RestException(500, 'Error when delete Agenda Event : '.$this->actioncomm->error);
         }
 

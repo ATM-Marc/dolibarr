@@ -307,7 +307,7 @@ class Interventions extends DolibarrApi
     		throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
     	}
 
-    	if( ! $this->fichinter->delete(DolibarrApiAccess::$user)) {
+    	if($this->fichinter->delete(DolibarrApiAccess::$user) <= 0) { // Fichinter::delete() can return 0 on error
     		throw new RestException(500, 'Error when delete intervention : '.$this->fichinter->error);
     	}
 

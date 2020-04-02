@@ -454,7 +454,7 @@ class Invoices extends DolibarrApi
              }
         }
 
-        if($this->invoice->update(DolibarrApiAccess::$user))
+        if($this->invoice->update(DolibarrApiAccess::$user) > 0)
             return $this->get($id);
 
         return false;
@@ -480,7 +480,7 @@ class Invoices extends DolibarrApi
 			throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
-        if( $this->invoice->delete($id) < 0)
+        if( $this->invoice->delete(DolibarrApiAccess::$user) <= 0) // Facture::delete() can return 0 on error
         {
             throw new RestException(500);
         }

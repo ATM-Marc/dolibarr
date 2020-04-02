@@ -233,7 +233,7 @@ class StockMovements extends DolibarrApi
             $this->stockmovement->$field = $value;
         }
 
-        if($this->stockmovement->update($id, DolibarrApiAccess::$user))
+        if($this->stockmovement->update($id, DolibarrApiAccess::$user) > 0)
             return $this->get ($id);
 
         return false;

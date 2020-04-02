@@ -221,7 +221,7 @@ class Subscriptions extends DolibarrApi
             throw new RestException(404, 'Subscription not found');
         }
 
-        if (! $subscription->delete(DolibarrApiAccess::$user)) {
+        if ($subscription->delete(DolibarrApiAccess::$user) < 0) {
             throw new RestException(401,'error when deleting subscription');
         }
 

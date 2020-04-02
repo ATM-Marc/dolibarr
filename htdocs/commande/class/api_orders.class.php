@@ -462,7 +462,7 @@ class Orders extends DolibarrApi
 			throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
-        if( ! $this->commande->delete(DolibarrApiAccess::$user)) {
+        if($this->commande->delete(DolibarrApiAccess::$user) <= 0) { // Commande::delete() can return 0 on error
             throw new RestException(500, 'Error when delete order : '.$this->commande->error);
         }
 

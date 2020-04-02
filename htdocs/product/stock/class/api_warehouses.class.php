@@ -204,8 +204,8 @@ class Warehouses extends DolibarrApi
             $this->warehouse->$field = $value;
         }
 
-        if($this->warehouse->update($id, DolibarrApiAccess::$user))
-            return $this->get ($id);
+        if($this->warehouse->update($id, DolibarrApiAccess::$user) > 0)
+            return $this->get($id);
 
         return false;
     }
@@ -230,7 +230,7 @@ class Warehouses extends DolibarrApi
 			throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
-        if (! $this->warehouse->delete(DolibarrApiAccess::$user)) {
+        if ($this->warehouse->delete(DolibarrApiAccess::$user) < 0) {
             throw new RestException(401,'error when delete warehouse');
         }
 

@@ -207,7 +207,7 @@ class MyModuleApi extends DolibarrApi
         foreach($request_data as $field => $value) {
             $this->myobject->$field = $value;
         }
-        if( ! $this->myobject->create(DolibarrApiAccess::$user)) {
+        if($this->myobject->create(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500);
         }
         return $this->myobject->id;
@@ -241,7 +241,7 @@ class MyModuleApi extends DolibarrApi
             $this->myobject->$field = $value;
         }
 
-        if($this->myobject->update($id, DolibarrApiAccess::$user))
+        if($this->myobject->update(DolibarrApiAccess::$user) > 0)
             return $this->get($id);
 
         return false;
@@ -269,7 +269,7 @@ class MyModuleApi extends DolibarrApi
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
-		if( !$this->myobject->delete(DolibarrApiAccess::$user, 0))
+		if($this->myobject->delete(DolibarrApiAccess::$user, 0) <= 0) // MyObject::delete() can return 0 on error
         {
             throw new RestException(500);
         }
