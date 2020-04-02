@@ -275,7 +275,7 @@ class Contacts extends DolibarrApi
 			throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
 		}
 
-		return $this->contact->delete($id);
+		return $this->contact->delete(); // Contact::delete() takes a single optional $notrigger argument
 	}
 
 	/**
